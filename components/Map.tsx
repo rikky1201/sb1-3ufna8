@@ -46,7 +46,7 @@ const defaultPolylineOptions: google.maps.PolylineOptions = {
 };
 
 const defaultMarkerOptions: google.maps.MarkerOptions = {
-  draggable: true,
+  draggable: false,
   clickable: true,
 };
 
