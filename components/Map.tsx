@@ -164,60 +164,100 @@ export default function Map({ userType, drawingMode, setDrawingMode, onClearOver
     setDrawingMode(null);
   };
 
-  const clearOverlays = useCallback(() => {
-    console.log("clearOverlays関数が実行されました");
-    console.log("現在のオーバーレイ数:", overlays.length);
+// clearOverlays関数を編集
+const clearOverlays = useCallback(() => {
+  console.log("clearOverlays関数が実行されました");
+  console.log("現在のオーバーレイ数:", overlays.length);
 
+  overlays.forEach(({ overlay, type }) => {
+    console.log("オーバーレイのタイプ:", type);
+    overlay.setMap(null); // オーバーレイを削除
+
+    // ポリラインやポリゴンを編集不可に設定
+if (overlay instanceof google.maps.Polygon) {
+  overlay.setEditable(false);
+} else if (overlay instanceof google.maps.Polyline) {
+  overlay.setEditable(false);
+}
+
+  });
+
+  if (drawingManager) {
+    drawingManager.setMap(null);
+    const newDrawingManager = new window.google.maps.drawing.DrawingManager({
+      drawingMode: null,
+      drawingControl: false,
+      polygonOptions: defaultPolygonOptions,
+      polylineOptions: defaultPolylineOptions,
+      markerOptions: defaultMarkerOptions,
+    });
+    newDrawingManager.setMap(map);
+    setDrawingManager(newDrawingManager);
+  }
+
+  setOverlays([]);
+  
+  toast({
+    title: "Cleared",
+    description: "All overlays have been removed from the map.",
+  });
+}, [overlays, toast, drawingManager, map]);
+
+// 描画モードがnullになったときにオーバーレイを編集不可にする
+useEffect(() => {
+  if (drawingMode === null) {
     overlays.forEach(({ overlay, type }) => {
-      console.log("削除するオーバーレイのタイプ:", type);
-      overlay.setMap(null);
+      if (overlay instanceof google.maps.Polygon) {
+        overlay.setEditable(false);
+      } else if (overlay instanceof google.maps.Polyline) {
+        overlay.setEditable(false);
+      }      
     });
+  }
+}, [drawingMode, overlays]);
 
-    if (drawingManager) {
-      drawingManager.setMap(null);
-      const newDrawingManager = new window.google.maps.drawing.DrawingManager({
-        drawingMode: null,
-        drawingControl: false,
-        polygonOptions: defaultPolygonOptions,
-        polylineOptions: defaultPolylineOptions,
-        markerOptions: defaultMarkerOptions,
-      });
-      newDrawingManager.setMap(map);
-      setDrawingManager(newDrawingManager);
-    }
-
-    setOverlays([]);
-    
-    toast({
-      title: "Cleared",
-      description: "All overlays have been removed from the map.",
+useEffect(() => {
+  if (drawingMode !== null) {
+    overlays.forEach(({ overlay, type }) => {
+      if (overlay instanceof google.maps.Polygon) {
+        overlay.setEditable(true);
+      } else if (overlay instanceof google.maps.Polyline) {
+        overlay.setEditable(true);
+      }      
     });
-  }, [overlays, toast, drawingManager, map]);
+  }
+}, [drawingMode, overlays]);
 
-  useEffect(() => {
-    onClearOverlays(clearOverlays);
-  }, [clearOverlays, onClearOverlays]);
 
   return (     
-    <GoogleMap
-      mapContainerStyle={mapContainerStyle}
-      center={center}
-      zoom={10}
-      onLoad={onLoad}
-      onUnmount={onUnmount}
-    >
-      {drawingManager && (
-        <DrawingManager
-          drawingMode={drawingMode}
-          options={{
-            drawingControl: false,
-            polygonOptions: defaultPolygonOptions,
-            polylineOptions: defaultPolylineOptions,
-            markerOptions: defaultMarkerOptions,
-          }}
-        />
+
+    <div className="relative h-full">
+      {/* ガイドメッセージ */}
+      {userType === 'operator' && drawingMode === google.maps.drawing.OverlayType.POLYLINE && (
+        <div className="absolute top-14 left-2.5 bg-blue-500 text-white px-4 py-2 rounded shadow-lg z-10">
+          確定するには終点とする点をクリック
+        </div>
       )}
-    </GoogleMap>
+      
+      <GoogleMap
+        mapContainerStyle={mapContainerStyle}
+        center={center}
+        zoom={10}
+        onLoad={onLoad}
+        onUnmount={onUnmount}
+      >
+        {drawingManager && (
+          <DrawingManager
+            drawingMode={drawingMode}
+            options={{
+              drawingControl: false,
+              polygonOptions: defaultPolygonOptions,
+              polylineOptions: defaultPolylineOptions,
+              markerOptions: defaultMarkerOptions,
+            }}
+          />
+        )}
+      </GoogleMap>
+    </div>
   );
 }
-//Stest

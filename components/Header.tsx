@@ -102,12 +102,25 @@ export function Header({ userType, setUserType, drawingMode, setDrawingMode, isL
                 Draw {userType === 'municipality' ? 'No-Fly Zone' : 'Flight Path'}
               </Button>
 
-              <Button
-                variant="outline"
-                onClick={() => setDrawingMode(null)}
-              >
-                Stop Drawing
-              </Button>
+              {drawingMode !== null ? (
+                <Button
+                  variant="outline"
+                  onClick={() => setDrawingMode(null)}
+                >
+                  Stop Drawing
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  onClick={() => setDrawingMode(
+                    userType === 'municipality' 
+                      ? google.maps.drawing.OverlayType.POLYGON 
+                      : google.maps.drawing.OverlayType.POLYLINE
+              )}
+                >
+                  Edit
+                </Button>
+              )}
             </>
           )}
 
