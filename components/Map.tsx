@@ -50,6 +50,23 @@ const defaultMarkerOptions: google.maps.MarkerOptions = {
   clickable: true,
 };
 
+const selectedPolygonOptions: google.maps.PolygonOptions = {
+  fillColor: "#00FF00",
+  fillOpacity: 0.5,
+  strokeWeight: 3,
+  clickable: true,
+  editable: true,
+  zIndex: 2,
+};
+
+const selectedPolylineOptions: google.maps.PolylineOptions = {
+  strokeColor: "#FF00FF",
+  strokeWeight: 3,
+  clickable: true,
+  editable: true,
+  zIndex: 2,
+};
+
 export default function Map({ userType, drawingMode, setDrawingMode, onClearOverlays, setWarning, setIsEditMode }: MapProps & { setIsEditMode: (isEditMode: boolean) => void }) {
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [drawingManager, setDrawingManager] = useState<google.maps.drawing.DrawingManager | null>(null);
@@ -226,11 +243,27 @@ useEffect(() => {
 }, [drawingMode, overlays]);
 
 const handlePolylineClick = (overlay: google.maps.Polyline) => {
-  setSelectedOverlay({ type: google.maps.drawing.OverlayType.POLYLINE, overlay, options: defaultPolylineOptions });
+  if (selectedOverlay) {
+    resetOverlayStyle(selectedOverlay);
+  }
+  setSelectedOverlay({ type: google.maps.drawing.OverlayType.POLYLINE, overlay, options: selectedPolylineOptions });
+  overlay.setOptions(selectedPolylineOptions);
 };
 
 const handlePolygonClick = (overlay: google.maps.Polygon) => {
-  setSelectedOverlay({ type: google.maps.drawing.OverlayType.POLYGON, overlay, options: defaultPolygonOptions });
+  if (selectedOverlay) {
+    resetOverlayStyle(selectedOverlay);
+  }
+  setSelectedOverlay({ type: google.maps.drawing.OverlayType.POLYGON, overlay, options: selectedPolygonOptions });
+  overlay.setOptions(selectedPolygonOptions);
+};
+
+const resetOverlayStyle = (overlay: Overlay) => {
+  if (overlay.type === google.maps.drawing.OverlayType.POLYGON) {
+    (overlay.overlay as google.maps.Polygon).setOptions(defaultPolygonOptions);
+  } else if (overlay.type === google.maps.drawing.OverlayType.POLYLINE) {
+    (overlay.overlay as google.maps.Polyline).setOptions(defaultPolylineOptions);
+  }
 };
 
 useEffect(() => {
@@ -257,6 +290,7 @@ const handleConfirmButtonClick = () => {
 const exitEditMode = () => {
   setIsEditMode(false);
   if (selectedOverlay) {
+    resetOverlayStyle(selectedOverlay);
     if (selectedOverlay.overlay instanceof google.maps.Polygon || selectedOverlay.overlay instanceof google.maps.Polyline) {
       selectedOverlay.overlay.setEditable(false);
     }
