@@ -48,6 +48,10 @@ const defaultPolylineOptions: google.maps.PolylineOptions = {
 const defaultMarkerOptions: google.maps.MarkerOptions = {
   draggable: false,
   clickable: true,
+  icon: {
+    url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
+    scaledSize: new google.maps.Size(20, 20),
+  },
 };
 
 const selectedPolygonOptions: google.maps.PolygonOptions = {
