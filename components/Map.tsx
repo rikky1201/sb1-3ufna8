@@ -48,10 +48,6 @@ const defaultPolylineOptions: google.maps.PolylineOptions = {
 const defaultMarkerOptions: google.maps.MarkerOptions = {
   draggable: false,
   clickable: true,
-  icon: {
-    url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png",
-    scaledSize: new google.maps.Size(20, 20),
-  },
 };
 
 const selectedPolygonOptions: google.maps.PolygonOptions = {
@@ -75,7 +71,6 @@ export default function Map({ userType, drawingMode, setDrawingMode, onClearOver
   const [map, setMap] = useState<google.maps.Map | null>(null);
   const [drawingManager, setDrawingManager] = useState<google.maps.drawing.DrawingManager | null>(null);
   const [overlays, setOverlays] = useState<Overlay[]>([]);
-  const [selectedOverlay, setSelectedOverlay] = useState<Overlay | null>(null);
 
   const { toast } = useToast()
 
@@ -246,13 +241,6 @@ useEffect(() => {
   }
 }, [drawingMode, overlays]);
 
-const handlePolylineClick = (overlay: google.maps.Polyline) => {
-  if (selectedOverlay) {
-    resetOverlayStyle(selectedOverlay);
-  }
-  setSelectedOverlay({ type: google.maps.drawing.OverlayType.POLYLINE, overlay, options: selectedPolylineOptions });
-  overlay.setOptions(selectedPolylineOptions);
-};
 
 const handlePolygonClick = (overlay: google.maps.Polygon) => {
   if (selectedOverlay) {
@@ -291,58 +279,7 @@ const handleConfirmButtonClick = () => {
   exitEditMode();
 };
 
-const exitEditMode = () => {
-  setIsEditMode(false);
-  if (selectedOverlay) {
-    resetOverlayStyle(selectedOverlay);
-    if (selectedOverlay.overlay instanceof google.maps.Polygon || selectedOverlay.overlay instanceof google.maps.Polyline) {
-      selectedOverlay.overlay.setEditable(false);
-    }
-    setSelectedOverlay(null);
-  }
-};
-
-useEffect(() => {
-  if (drawingMode !== null) {
-    exitEditMode(); // 描画モードに移ったときに編集モードを終了
-  }
-}, [drawingMode]);
-
-useEffect(() => {
-  if (userType !== 'operator' && userType !== 'municipality') {
-    exitEditMode(); // 他のカテゴリに移ったときに編集モードを終了
-  }
-}, [userType]);
-
-  return (     
     <div className="relative h-full">
-      {selectedOverlay && (
-        <div className="absolute top-0 left-0 bg-white p-2 rounded shadow-lg z-10">
-          <button
-            className="bg-blue-500 text-white px-4 py-2 rounded"
-            onClick={handleEditButtonClick}
-          >
-            編集
-          </button>
-          <button
-            className="bg-red-500 text-white px-4 py-2 rounded ml-2"
-            onClick={() => {
-              selectedOverlay.overlay.setMap(null);
-              setOverlays(overlays.filter(o => o !== selectedOverlay));
-              exitEditMode(); // オーバーレイを削除したときに編集モードを終了
-            }}
-          >
-            削除
-          </button>
-          <button
-            className="bg-green-500 text-white px-4 py-2 rounded ml-2"
-            onClick={handleConfirmButtonClick}
-          >
-            確定
-          </button>
-        </div>
-      )}
-
       {/* ガイドメッセージ */}
       {userType === 'operator' && drawingMode === google.maps.drawing.OverlayType.POLYLINE && (
         <div className="absolute top-14 left-2.5 bg-blue-500 text-white px-4 py-2 rounded shadow-lg z-10">
