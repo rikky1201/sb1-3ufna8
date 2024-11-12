@@ -12,10 +12,12 @@ type HeaderProps = {
   isLoaded: boolean;
   onClearOverlays: () => void;
   warning: string | null;
+  isEditMode: boolean;
 };
 
-export function Header({ userType, setUserType, drawingMode, setDrawingMode, isLoaded, onClearOverlays, warning }: HeaderProps) {
+export function Header({ userType, setUserType, drawingMode, setDrawingMode, isLoaded, onClearOverlays, warning, isEditMode }: HeaderProps) {
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isSelectMode, setIsSelectMode] = useState(false);
 
   const handleClearAll = () => {
     setShowConfirmDialog(true);
@@ -24,6 +26,13 @@ export function Header({ userType, setUserType, drawingMode, setDrawingMode, isL
   const handleConfirm = () => {
     onClearOverlays();
     setShowConfirmDialog(false);
+  };
+
+  const handleUserTypeChange = (value: 'municipality' | 'operator' | 'resident') => {
+    setUserType(value);
+    if (value === 'resident') {
+      setIsSelectMode(false); // residentに移ったときに選択モードを終了
+    }
   };
 
   return (
@@ -48,11 +57,21 @@ export function Header({ userType, setUserType, drawingMode, setDrawingMode, isL
             transition-all duration-200 ease-in-out
             px-3 py-1.5 rounded-full text-sm font-medium
             flex items-center gap-2
-            ${drawingMode 
+            ${drawingMode || isEditMode || isSelectMode
               ? 'bg-primary-foreground text-primary'
               : 'bg-green-100 text-green-800 border border-green-300'}
           `}>
-            {drawingMode ? (
+            {isEditMode ? (
+              <>
+                <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full"/>
+                編集モード
+              </>
+            ) : isSelectMode ? (
+              <>
+                <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"/>
+                選択モード
+              </>
+            ) : drawingMode ? (
               <>
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full bg-red-500 rounded-full opacity-75 animate-slow-ping"/>
@@ -72,7 +91,7 @@ export function Header({ userType, setUserType, drawingMode, setDrawingMode, isL
             )}
           </div>
 
-          <Select value={userType} onValueChange={(value: 'municipality' | 'operator' | 'resident') => setUserType(value)}>
+          <Select value={userType} onValueChange={handleUserTypeChange}>
             <SelectTrigger className="w-[180px] text-black">
               <SelectValue placeholder="Select user type" />
             </SelectTrigger>
@@ -112,13 +131,11 @@ export function Header({ userType, setUserType, drawingMode, setDrawingMode, isL
               ) : (
                 <Button
                   variant="outline"
-                  onClick={() => setDrawingMode(
-                    userType === 'municipality' 
-                      ? google.maps.drawing.OverlayType.POLYGON 
-                      : google.maps.drawing.OverlayType.POLYLINE
-              )}
+                  onClick={() => {
+                    setIsSelectMode(!isSelectMode);
+                  }}
                 >
-                  Edit
+                  Select
                 </Button>
               )}
             </>

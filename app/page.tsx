@@ -18,6 +18,7 @@ export default function Home() {
   const [drawingMode, setDrawingMode] = useState<google.maps.drawing.OverlayType | null>(null);
   const [clearFn, setClearFn] = useState<(() => void) | null>(null);
   const [warning, setWarning] = useState<string | null>(null);
+  const [isEditMode, setIsEditMode] = useState<boolean>(false);
 
   const { isLoaded } = useJsApiLoader({
     id: 'google-map-script',
@@ -47,6 +48,7 @@ export default function Home() {
         onClearOverlays={handleClearOverlays}
         isLoaded={isLoaded}
         warning={warning}
+        isEditMode={isEditMode}
       />
       <MapContainer>
         {isLoaded ? (
@@ -56,6 +58,7 @@ export default function Home() {
             setDrawingMode={setDrawingMode}
             onClearOverlays={handleSetClearFn}
             setWarning={setWarning}
+            setIsEditMode={setIsEditMode}
           />
         ) : (
           <div className="flex items-center justify-center h-full">
